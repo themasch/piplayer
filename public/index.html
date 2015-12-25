@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+    <nav class="navbar navbar-inverse navbar-static-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">
+            kitchenpi
+          </a>
+        </div>
+      </div>
+    </nav>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 col-xs-12">
+            </div>
+            <div class="col-md-4 col-xs-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Currently playing</div>
+                    <div class="panel-body" id="metadata">
+                        Nothing - no one
+                    </div>
+                    <div class="panel-body" id="progress">
+                        <div class="progress">
+                            <div
+                                class="progress-bar"
+                                role="progressbar"
+                                style="width: 60%;">
+                                <span class="sr-only">60% Complete</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-default glyphicon glyphicon-fast-forward" />
+                            <button class="btn btn-default glyphicon glyphicon-stop" />
+                            <button id="pause-button" class="btn btn-default glyphicon glyphicon-pause" />
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">Playlist</div>
+                    <ul class="list-group" id="playlist">
+                      <li class="list-group-item">Cras justo odio</li>
+                      <li class="list-group-item">Dapibus ac facilisis in</li>
+                      <li class="list-group-item">Morbi leo risus</li>
+                      <li class="list-group-item">Porta ac consectetur ac</li>
+                      <li class="list-group-item">Vestibulum at eros</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="./lib/playlist.js"></script>
+    <script src="./lib/progressbar.js"></script>
+    <script src="./lib/metadata.js"></script>
+    <script>
+        var socket = new io();
+        socket.call = function(method, parameters) {
+            return new Promise(function(resolve, reject) {
+                this.emit('call', {
+                    method: method,
+                    parameters: parameters
+                }, function(result) {
+                    resolve(result);
+                });
+            }.bind(this));
+        }
+
+        socket.setProperty = function(property, value) {
+            return this.call('set_property', {
+                propertyName: property,
+                value: value
+            });
+        };
+
+        socket.getProperty = function(property) {
+            return this.call('get_property', {
+                propertyName: property
+            })
+        };
+
+        socket.observe = function(eventName, callback) {
+            this.call('observe', { eventName: eventName });
+            this.on(eventName, callback)
+        };
+
+        socket.observeProperty = function(propertyName, callback) {
+            this.call('observe_property', { propertyName: propertyName })
+                .then(function() {
+                    this.observe('property-change:' + propertyName, callback)
+                }.bind(this))
+
+        }
+
+        /*socket.observeProperty('percent-pos', function(percent) {
+            document.getElementById('progressbar').style.width = percent + '%';
+        })*/
+
+        var bar = new ProgressBar(socket, document.getElementById('progress'), 'percent-pos');
+
+        var plv = new PlaylistView(socket, document.getElementById('playlist'));
+        var mv = new MetadataView(socket, document.getElementById('metadata'));
+    </script>
+    <script src="./lib/pause-button.js"></script>
+</body>
+</html>
