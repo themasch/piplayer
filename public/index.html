@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Document</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./style.css" / >
 </head>
 <body>
     <nav class="navbar navbar-inverse navbar-static-top">
@@ -28,12 +28,9 @@
                     </div>
                     <div class="panel-body" id="progress">
                         <div class="progress">
-                            <div
-                                class="progress-bar"
-                                role="progressbar"
-                                style="width: 60%;">
-                                <span class="sr-only">60% Complete</span>
-                            </div>
+                          <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                            <span class="sr-only">unknown</span>
+                          </div>
                         </div>
                     </div>
                     <div class="panel-footer">
@@ -61,51 +58,12 @@
     <script src="./lib/playlist.js"></script>
     <script src="./lib/progressbar.js"></script>
     <script src="./lib/metadata.js"></script>
+    <script src="./lib/socket.js"></script>
     <script>
         var socket = new io();
-        socket.call = function(method, parameters) {
-            return new Promise(function(resolve, reject) {
-                this.emit('call', {
-                    method: method,
-                    parameters: parameters
-                }, function(result) {
-                    resolve(result);
-                });
-            }.bind(this));
-        }
-
-        socket.setProperty = function(property, value) {
-            return this.call('set_property', {
-                propertyName: property,
-                value: value
-            });
-        };
-
-        socket.getProperty = function(property) {
-            return this.call('get_property', {
-                propertyName: property
-            })
-        };
-
-        socket.observe = function(eventName, callback) {
-            this.call('observe', { eventName: eventName });
-            this.on(eventName, callback)
-        };
-
-        socket.observeProperty = function(propertyName, callback) {
-            this.call('observe_property', { propertyName: propertyName })
-                .then(function() {
-                    this.observe('property-change:' + propertyName, callback)
-                }.bind(this))
-
-        }
-
-        /*socket.observeProperty('percent-pos', function(percent) {
-            document.getElementById('progressbar').style.width = percent + '%';
-        })*/
+        patchSocket(socket);
 
         var bar = new ProgressBar(socket, document.getElementById('progress'), 'percent-pos');
-
         var plv = new PlaylistView(socket, document.getElementById('playlist'));
         var mv = new MetadataView(socket, document.getElementById('metadata'));
     </script>

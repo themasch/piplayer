@@ -17,6 +17,7 @@ function isUrl(path) {
 function playlistEntry(entry) {
     if (isUrl(entry.filename)) {
         //return URL.parse(entry.filename).path;
+        entry.name = entry.filename;
         return entry;
     } else {
         var parts = Path.parse(entry.filename);
@@ -26,6 +27,17 @@ function playlistEntry(entry) {
             current: entry.current
         } ;
     }
+}
+
+function translateMetadata(metadata) {
+    "use strict";
+    if (metadata['icy-title']) {
+        let data = metadata['icy-title'].split(' - ');
+        metadata.artist = data[0];
+        metadata.title  = data[1];
+    }
+
+    return metadata;
 }
 
 app.use(express.static('./public'))
@@ -72,6 +84,7 @@ io.on('connection', function(socket){
 
             case 'getMetadata':
                 mpv.getMetadata()
+                    .then(translateMetadata)
                     .then(fn)
                 break;
 

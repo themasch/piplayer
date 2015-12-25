@@ -19,7 +19,7 @@
             .then(function(playlist) {
                 var i = 0;
                 this.rootElement.innerHTML = playlist.map(function(entry) {
-                    var html  = ['<li class="list-group-item'];
+                    var html  = ['<button type="button" class="list-group-item'];
                     if (entry.current === true) {
                         html.push(' list-group-item-info')
                     }
@@ -27,7 +27,7 @@
                     html.push('data-track-index="' + i + '"');
                     html.push('">')
                     html.push(entry.name);
-                    html.push('</li>');
+                    html.push('</button>');
                     i++;
 
                     return html.join('');
